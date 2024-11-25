@@ -1,21 +1,112 @@
 'use client'
 
+import { useState, MouseEvent, useEffect } from 'react'
+
 export default function Home() {
+  const [position, setPosition] = useState({ x: 150, y: 200 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [opacity, setOpacity] = useState(1)
+  const [blur, setBlur] = useState(0)
+
+  useEffect(() => {
+    const handleMouseMove = (e: globalThis.MouseEvent) => {
+      if (!isDragging) return
+
+      setPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      })
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging, dragOffset])
+
+  const handleMouseDown = (e: MouseEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+    setDragOffset({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    })
+  }
+
   return (
     <main className="relative min-h-screen">
-      {/* Fake overlay button to demonstrate clickjacking attempt */}
-      <button 
-        className="absolute top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2 
-                   bg-transparent border-2 border-red-500 text-transparent font-bold py-2 px-4 rounded
-                   hover:bg-red-100 z-10 text-black"
-      >
-        Malicious Overlay Button
-      </button>
+      <div className="fixed top-4 left-4 z-20 bg-white p-4 rounded shadow">
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">
+            Iframe Opacity: {opacity}
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={opacity}
+            onChange={(e) => setOpacity(parseFloat(e.target.value))}
+            className="w-48 mt-1"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Button Blur: {blur}px
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="0.5"
+            value={blur}
+            onChange={(e) => setBlur(parseFloat(e.target.value))}
+            className="w-48 mt-1"
+          />
+        </div>
+      </div>
 
-      {/* Iframe containing the protected site */}
+      <div 
+        className="absolute flex items-center gap-2 bg-black border-2 border-red-500 
+                   rounded z-10 pointer-events-none overflow-hidden"
+        style={{
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+          transform: 'translate(-50%, -50%)',
+          filter: `blur(${blur}px)`
+        }}
+      >
+        <div 
+          className="px-2 py-4 hover:bg-gray-800 cursor-move text-white pointer-events-auto"
+          onMouseDown={handleMouseDown}
+        >
+          ⋮
+        </div>
+        <button 
+          className="px-4 py-2 text-white hover:bg-gray-800 pointer-events-none"
+        >
+          Malicious Overlay Button
+        </button>
+      </div>
+
       <iframe
-        src="http://localhost:3001" // Child site URL
-        className="w-full h-screen opacity-50"
+        src="http://localhost:3001"
+        style={{ 
+          width: '100%',
+          height: '100vh',
+          opacity: opacity
+        }}
       />
     </main>
   )
