@@ -2,9 +2,15 @@
 
 This project demonstrates and researches different approaches to prevent clickjacking attacks in iframe-embedded components. It consists of two separate Next.js applications that work together to test and showcase security measures.
 
-## Project Structure 
+## Demo
+
+![Demo of Clickjacking Protection](docs/assets/demo.gif)
+
+## Project Structure
+
 ```
 ├── README.md
+├── docs/ # Documentation and assets
 ├── child-site/ # The protected site that will be embedded
 └── host-site/ # The site that attempts clickjacking
 ```
